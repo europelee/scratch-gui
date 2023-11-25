@@ -77,17 +77,20 @@ const extractFirstMatchingFile = (filter, relativeDestDir, zipBuffer) => new Pro
 });
 
 const downloadMicrobitHex = async () => {
-    const url = 'https://downloads.scratch.mit.edu/microbit/scratch-microbit.hex.zip';
-    console.info(`Downloading ${url}`);
-    const response = await crossFetch(url);
-    const zipBuffer = Buffer.from(await response.arrayBuffer());
+    console.log('downloadMicrobitHex');
     const relativeHexDir = path.join('static', 'microbit');
-    const hexFileName = await extractFirstMatchingFile(
-        entry => /\.hex$/.test(entry.fileName),
-        path.join('static', 'microbit'),
-        zipBuffer
-    );
+    const hexFileName = 'scratch-microbit.hex';
     const relativeHexFile = path.join(relativeHexDir, hexFileName);
+
+    const sourceFile = '/opt/scratch-microbit.hex';
+    const destinationFile = path.join(basePath, relativeHexFile);
+    const destinationDir = path.dirname(destinationFile);
+    console.log('destinationFile:', destinationFile);
+    if (!fs.existsSync(destinationDir)) {
+        fs.mkdirSync(destinationDir, { recursive: true });  
+    }
+    fs.copyFileSync(sourceFile, destinationFile);
+
     const relativeGeneratedDir = path.join('src', 'generated');
     const relativeGeneratedFile = path.join(relativeGeneratedDir, 'microbit-hex-url.cjs');
     const absoluteGeneratedDir = path.join(basePath, relativeGeneratedDir);
@@ -108,6 +111,7 @@ const downloadMicrobitHex = async () => {
         ].join('\n')
     );
     console.info(`Wrote ${relativeGeneratedFile}`);
+        
 };
 
 const prepublish = async () => {
